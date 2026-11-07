@@ -357,6 +357,7 @@ function ServicesContent({
       });
 
       setMessage(`Serviço "${service.name}" excluído.`);
+      onReload();
     } catch (error) {
       if (!mounted.current) return;
 
