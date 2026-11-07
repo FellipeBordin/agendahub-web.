@@ -138,3 +138,120 @@
     min-height: 100svh;
   }
 }
+
+/* Identidade visual do AgendaHub */
+
+:root {
+  color-scheme: light;
+
+  --background: #f7f8f5;
+  --foreground: #203c38;
+
+  --card: #ffffff;
+  --card-foreground: #203c38;
+
+  --popover: #ffffff;
+  --popover-foreground: #203c38;
+
+  --primary: #18594f;
+  --primary-foreground: #ffffff;
+
+  --secondary: #eaf1eb;
+  --secondary-foreground: #28554b;
+
+  --muted: #eff2ed;
+  --muted-foreground: #62736b;
+
+  --accent: #e8f0e9;
+  --accent-foreground: #18594f;
+
+  --destructive: #b43f44;
+  --border: #dde5dd;
+  --input: #d1dcd3;
+  --ring: #4c8575;
+
+  --radius: 0.875rem;
+
+  --sidebar: #ffffff;
+  --sidebar-foreground: #203c38;
+  --sidebar-primary: #18594f;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #eaf1eb;
+  --sidebar-accent-foreground: #18594f;
+  --sidebar-border: #dde5dd;
+  --sidebar-ring: #4c8575;
+}
+
+@layer base {
+  html {
+    background: var(--background);
+  }
+
+  body {
+    margin: 0;
+    min-width: 320px;
+    background: var(--background);
+    color: var(--foreground);
+  }
+
+  #root {
+    min-height: 100svh;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  button:not(:disabled),
+  select:not(:disabled) {
+    cursor: pointer;
+  }
+
+  ::selection {
+    background: #c9e6d4;
+    color: #173d33;
+  }
+}
+
+@layer components {
+  .hub-card {
+    border: 1px solid var(--border);
+    border-radius: 1.25rem;
+    background: var(--card);
+    box-shadow: 0 5px 24px -16px rgb(29 68 54 / 22%);
+  }
+
+  .hub-page {
+    width: 100%;
+    max-width: 72rem;
+    margin-inline: auto;
+    padding: 1.5rem 1rem 2rem;
+  }
+
+  .hub-eyebrow {
+    color: var(--muted-foreground);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .hub-heading {
+    font-size: clamp(1.9rem, 4vw, 2.7rem);
+    font-weight: 600;
+    letter-spacing: -0.045em;
+    line-height: 1.15;
+  }
+
+  .hub-mobile-nav {
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  }
+
+  @media (min-width: 640px) {
+    .hub-page {
+      padding: 2.5rem;
+    }
+  }
+}

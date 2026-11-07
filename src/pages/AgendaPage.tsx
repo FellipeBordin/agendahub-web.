@@ -16,6 +16,7 @@ type AgendaPageProps = {
   session: AuthSession;
   onLogout: () => void;
   onCreate?: () => void;
+  onServices?: () => void;
   initialDate?: string;
 };
 
@@ -164,10 +165,20 @@ function AppointmentCard({
   return (
     <article
       aria-busy={isSaving}
-      className="rounded-2xl border bg-card p-5 sm:p-6"
+      className="hub-card relative overflow-hidden p-5 sm:p-6"
     >
+      <div
+        aria-hidden="true"
+        className={`absolute inset-y-0 left-0 w-1 ${
+          appointment.status === "SCHEDULED"
+            ? "bg-primary"
+            : appointment.status === "COMPLETED"
+              ? "bg-emerald-400"
+              : "bg-border"
+        }`}
+      />
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="font-semibold tabular-nums">
+        <p className="rounded-xl bg-secondary/70 px-3 py-2 text-lg font-semibold tracking-tight text-primary tabular-nums">
           <time
             dateTime={parseAppointmentDate(appointment.startAt).toISOString()}
           >
@@ -416,110 +427,148 @@ export function AgendaPage({
     setReload((current) => current + 1);
   }
 
-  return (
-    <div className="min-h-svh bg-background text-foreground">
-      <header className="border-b bg-card">
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
-          <div className="min-w-0">
-            <p className="text-sm font-medium text-muted-foreground">
-              AgendaHub
-            </p>
+  function changeDay(amount: number) {
+    const selected = new Date(`${date || getToday()}T12:00:00Z`);
+    selected.setUTCDate(selected.getUTCDate() + amount);
+    setDate(selected.toISOString().slice(0, 10));
+  }
 
-            <p className="truncate text-lg font-semibold">
-              {session.business.name}
-            </p>
+  const dateLabel = date
+    ? new Intl.DateTimeFormat("pt-BR", {
+        timeZone: "UTC",
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+      }).format(new Date(`${date}T12:00:00Z`))
+    : "Selecione uma data";
+
+  return (
+    <main className="hub-page space-y-7">
+      <section className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
+        <div>
+          <p className="hub-eyebrow mb-3">{session.business.name}</p>
+
+          <h1 className="hub-heading">Sua agenda, mais leve.</h1>
+
+          <p className="mt-3 max-w-lg text-sm leading-relaxed text-muted-foreground sm:text-base">
+            Um dia organizado começa aqui. Acompanhe seus atendimentos e cuide
+            de cada detalhe.
+          </p>
+        </div>
+
+        <Button
+          type="button"
+          className="h-12 shrink-0 gap-2 rounded-xl px-5 shadow-sm"
+          onClick={onCreate}
+        >
+          <span aria-hidden="true" className="text-xl font-normal">
+            +
+          </span>
+          Novo agendamento
+        </Button>
+      </section>
+
+      <section
+        aria-label="Selecionar data da agenda"
+        className="hub-card overflow-hidden"
+      >
+        <div className="flex flex-col justify-between gap-4 border-b bg-secondary/40 p-5 sm:flex-row sm:items-center sm:px-6">
+          <div>
+            <p className="hub-eyebrow">Agenda do dia</p>
+            <h2 className="mt-2 text-lg font-semibold capitalize sm:text-xl">
+              {dateLabel}
+            </h2>
           </div>
 
           <Button
             type="button"
             variant="outline"
-            className="min-h-11 shrink-0 px-4"
-            onClick={onLogout}
+            className="h-11 bg-card px-5"
+            onClick={() => {
+              setDate(getToday());
+              refreshAppointments();
+            }}
           >
-            Sair
-          </Button>
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-5xl space-y-6 px-4 py-6 sm:px-6 sm:py-10">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Sua agenda</h1>
-
-          <p className="mt-2 text-muted-foreground">
-            Acompanhe os atendimentos do seu negócio.
-          </p>
-          <Button
-            type="button"
-            className="mt-4 min-h-12 w-full sm:w-auto"
-            onClick={onCreate}
-          >
-            Novo agendamento
+            Voltar para hoje
           </Button>
         </div>
 
-        <section
-          aria-label="Selecionar data da agenda"
-          className="rounded-2xl border bg-card p-4 sm:p-5"
-        >
+        <div className="space-y-4 p-5 sm:px-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
             <div className="min-w-0 flex-1 space-y-2">
-              <Label htmlFor="agenda-date">Data dos agendamentos</Label>
+              <Label htmlFor="agenda-date">Escolha a data</Label>
 
-              <Input
-                id="agenda-date"
-                type="date"
-                value={date}
-                onChange={(event) => setDate(event.target.value)}
-                className="h-12 w-full min-w-0 text-base md:text-base"
-              />
+              <div className="flex min-w-0 items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  aria-label="Dia anterior"
+                  className="size-12 shrink-0 text-xl"
+                  onClick={() => changeDay(-1)}
+                >
+                  <span aria-hidden="true">‹</span>
+                </Button>
+
+                <Input
+                  id="agenda-date"
+                  type="date"
+                  value={date}
+                  onChange={(event) => setDate(event.target.value)}
+                  className="h-12 min-w-0 flex-1 rounded-xl bg-background text-base md:text-base"
+                />
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  aria-label="Próximo dia"
+                  className="size-12 shrink-0 text-xl"
+                  onClick={() => changeDay(1)}
+                >
+                  <span aria-hidden="true">›</span>
+                </Button>
+              </div>
             </div>
 
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                className="h-12 flex-1 px-5"
-                onClick={() => {
-                  setDate(getToday());
-                  refreshAppointments();
-                }}
-              >
-                Hoje
-              </Button>
-
-              <Button
-                type="button"
-                variant="outline"
-                disabled={!date}
-                className="h-12 flex-1 px-5"
-                onClick={refreshAppointments}
-              >
-                Atualizar
-              </Button>
-            </div>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={!date}
+              className="h-12 rounded-xl px-6"
+              onClick={refreshAppointments}
+            >
+              Atualizar agenda
+            </Button>
           </div>
 
-          <p className="mt-3 text-xs text-muted-foreground">
-            Horários no fuso de São Paulo.
+          <p className="text-xs text-muted-foreground">
+            Horários exibidos no fuso de São Paulo.
           </p>
-        </section>
+        </div>
+      </section>
 
-        <section aria-label="Agendamentos da data selecionada">
-          {date ? (
-            <AppointmentList
-              key={`${date}-${reload}`}
-              session={session}
-              date={date}
-              onLogout={onLogout}
-              onRetry={refreshAppointments}
-            />
-          ) : (
+      <section aria-label="Agendamentos da data selecionada">
+        <div className="mb-4 flex items-center gap-3">
+          <span className="size-2 rounded-full bg-primary" aria-hidden="true" />
+          <h2 className="text-base font-semibold">Seus atendimentos</h2>
+          <div className="h-px flex-1 bg-border" />
+        </div>
+
+        {date ? (
+          <AppointmentList
+            key={`${date}-${reload}`}
+            session={session}
+            date={date}
+            onLogout={onLogout}
+            onRetry={refreshAppointments}
+          />
+        ) : (
+          <div className="hub-card p-8 text-center">
             <p role="status" className="text-sm text-muted-foreground">
               Selecione uma data para consultar a agenda.
             </p>
-          )}
-        </section>
-      </main>
-    </div>
+          </div>
+        )}
+      </section>
+    </main>
   );
 }

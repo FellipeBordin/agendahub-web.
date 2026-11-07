@@ -1,12 +1,16 @@
 import { useCallback, useEffect, useState } from "react";
+import { AppShell } from "@/components/layout/AppShell";
 import { LoginPage } from "@/pages/LoginPage";
 import { AgendaPage } from "@/pages/AgendaPage";
 import { NewAppointmentPage } from "@/pages/NewAppointmentPage";
+import { ServicesPage } from "@/pages/ServicesPage";
 import type { AuthSession } from "@/services/auth.service";
+
+type Page = "agenda" | "new" | "services";
 
 function App() {
   const [session, setSession] = useState<AuthSession | null>(null);
-  const [page, setPage] = useState<"agenda" | "new">("agenda");
+  const [page, setPage] = useState<Page>("agenda");
   const [agendaDate, setAgendaDate] = useState<string>();
 
   const handleLogout = useCallback(() => {
@@ -23,30 +27,63 @@ function App() {
     return () => window.clearTimeout(timeout);
   }, [session, handleLogout]);
 
+  function navigate(nextPage: Page) {
+    if (nextPage === page) return;
+
+    if (
+      (page === "new" || page === "services") &&
+      !window.confirm(
+        "Trocar de tela? Se houver um formulário em edição, os dados não salvos serão perdidos. Se estiver salvando, aguarde a confirmação antes de sair.",
+      )
+    ) {
+      return;
+    }
+
+    setPage(nextPage);
+    window.scrollTo({ top: 0 });
+  }
+
   if (!session) {
     return <LoginPage onLogin={setSession} />;
   }
 
-  if (page === "new") {
-    return (
-      <NewAppointmentPage
-        session={session}
-        onBack={() => setPage("agenda")}
-        onCreated={(date) => {
-          setAgendaDate(date);
-          setPage("agenda");
-        }}
-      />
-    );
-  }
-
   return (
-    <AgendaPage
+    <AppShell
       session={session}
+      page={page}
+      onNavigate={navigate}
       onLogout={handleLogout}
-      onCreate={() => setPage("new")}
-      initialDate={agendaDate}
-    />
+    >
+      {page === "agenda" && (
+        <AgendaPage
+          session={session}
+          onLogout={handleLogout}
+          onCreate={() => navigate("new")}
+          onServices={() => navigate("services")}
+          initialDate={agendaDate}
+        />
+      )}
+
+      {page === "new" && (
+        <NewAppointmentPage
+          session={session}
+          onBack={() => navigate("agenda")}
+          onCreated={(date) => {
+            setAgendaDate(date);
+            setPage("agenda");
+            window.scrollTo({ top: 0 });
+          }}
+        />
+      )}
+
+      {page === "services" && (
+        <ServicesPage
+          session={session}
+          onLogout={handleLogout}
+          onBack={() => navigate("agenda")}
+        />
+      )}
+    </AppShell>
   );
 }
 

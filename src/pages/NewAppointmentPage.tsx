@@ -337,7 +337,7 @@ export function NewAppointmentPage({
       : undefined;
 
   return (
-    <main className="min-h-svh bg-background px-4 py-6 text-foreground sm:py-10">
+    <main className="hub-page">
       <div className="mx-auto max-w-xl space-y-6">
         <Button
           type="button"
@@ -353,9 +353,7 @@ export function NewAppointmentPage({
             {session.business.name}
           </p>
 
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight">
-            Novo agendamento
-          </h1>
+          <h1 className="hub-heading mt-2">Novo agendamento</h1>
 
           <p className="mt-2 text-sm text-muted-foreground">
             Escolha o serviço, a data e o horário do atendimento.
