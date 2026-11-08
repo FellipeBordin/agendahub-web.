@@ -1,0 +1,11 @@
+{
+    "id": "/",
+    "name": "AgendaHub",
+    "short_name": "AgendaHub",
+    "lang": "pt-BR",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "background_color": "#f7f8f5",
+    "theme_color": "#18594f"
+}

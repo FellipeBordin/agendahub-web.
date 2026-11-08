@@ -18,7 +18,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
-function isAuthSession(value: unknown): value is AuthSession {
+export function isAuthSession(value: unknown): value is AuthSession {
   if (!isRecord(value)) return false;
 
   const { user, business } = value;

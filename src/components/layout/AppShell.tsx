@@ -1,8 +1,9 @@
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import type { AuthSession } from "@/services/auth.service";
+import { NotificationBell } from "@/components/layout/NotificationBell";
 
-type Screen = "agenda" | "new" | "services";
+type Screen = "agenda" | "new" | "services" | "availability";
 type IconName = Screen | "logout";
 
 type AppShellProps = {
@@ -59,6 +60,12 @@ function Icon({
           <path d="M9 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4M14 8l4 4-4 4M8 12h13" />
         </>
       )}
+      {name === "availability" && (
+        <>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 7v5l3 2" />
+        </>
+      )}
     </svg>
   );
 }
@@ -85,6 +92,7 @@ function Brand() {
 const navigation: { page: Screen; label: string }[] = [
   { page: "agenda", label: "Minha agenda" },
   { page: "services", label: "Serviços" },
+  { page: "availability", label: "Funcionamento" },
   { page: "new", label: "Novo agendamento" },
 ];
 
@@ -172,7 +180,12 @@ export function AppShell({
               </p>
             </div>
 
-            <div className="flex min-w-0 items-center gap-3">
+            <div className="flex shrink-0 items-center gap-1 sm:gap-3">
+              <NotificationBell
+                key={`${session.user.id}-${session.business.id}`}
+                session={session}
+                onLogout={onLogout}
+              />
               <div className="hidden text-right sm:block">
                 <p className="max-w-48 truncate text-sm font-semibold">
                   {session.user.name}
@@ -182,7 +195,7 @@ export function AppShell({
 
               <div
                 aria-label={session.user.name}
-                className="flex size-10 shrink-0 items-center justify-center rounded-full border border-white bg-secondary text-sm font-semibold text-primary ring-1 ring-border"
+                className="hidden size-10 shrink-0 items-center justify-center rounded-full border border-white bg-secondary text-sm font-semibold text-primary ring-1 ring-border sm:flex"
               >
                 {initials}
               </div>
@@ -205,7 +218,7 @@ export function AppShell({
 
       <nav
         aria-label="Menu principal no celular"
-        className="hub-mobile-nav fixed inset-x-0 bottom-0 z-40 grid grid-cols-3 gap-1 border-t bg-card px-3 pt-2 lg:hidden"
+        className="hub-mobile-nav fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 gap-1 border-t bg-card px-3 pt-2 lg:hidden"
       >
         {navigation.map((item) => (
           <button
@@ -220,7 +233,13 @@ export function AppShell({
             }`}
           >
             <Icon name={item.page} />
-            {item.page === "new" ? "Agendar" : item.label}
+            {item.page === "new"
+              ? "Agendar"
+              : item.page === "availability"
+                ? "Horários"
+                : item.page === "agenda"
+                  ? "Agenda"
+                  : item.label}
           </button>
         ))}
       </nav>
