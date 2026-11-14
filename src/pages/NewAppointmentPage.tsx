@@ -26,12 +26,19 @@ type SlotsState =
   | { status: "error"; message: string }
   | { status: "success"; slots: string[] };
 
+export type BookingDetails = {
+  time: string;
+  serviceName: string;
+};
+
 type BookingFormProps = {
   slug: string;
   date: string;
   service: Service;
-  onCreated: (date: string) => void;
-  onBack: () => void;
+  onCreated: (date: string, details: BookingDetails) => void;
+  onBack?: () => void;
+  onSavingChange?: (saving: boolean) => void;
+  publicBooking?: boolean;
 };
 
 function getToday(): string {
@@ -58,13 +65,14 @@ function getErrorMessage(error: unknown): string {
     ? error.message
     : "Não foi possível carregar os dados.";
 }
-
-function BookingForm({
+export function BookingForm({
   slug,
   date,
   service,
   onCreated,
   onBack,
+  onSavingChange,
+  publicBooking = false,
 }: BookingFormProps) {
   const [state, setState] = useState<SlotsState>({
     status: "loading",
@@ -72,6 +80,7 @@ function BookingForm({
   const [slot, setSlot] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
+  const [validationError, setValidationError] = useState("");
 
   const submitting = useRef(false);
   const mounted = useRef(false);
@@ -143,12 +152,12 @@ function BookingForm({
       typeof clientPhone !== "string" ||
       !clientPhone.trim()
     ) {
-      setError("Informe o nome e o WhatsApp do cliente.");
+      setValidationError("Informe o nome e o WhatsApp.");
       return;
     }
 
-    submitting.current = true;
-    setIsSaving(true);
+    setValidationError("");
+    onSavingChange?.(true);
 
     try {
       await createAppointment(slug, {
@@ -157,9 +166,11 @@ function BookingForm({
         serviceId: service.id,
         startAt: `${date}T${slot}:00-03:00`,
       });
-
       if (mounted.current) {
-        onCreated(date);
+        onCreated(date, {
+          time: slot,
+          serviceName: service.name,
+        });
       }
     } catch (caught) {
       if (mounted.current) {
@@ -167,9 +178,9 @@ function BookingForm({
       }
     } finally {
       submitting.current = false;
-
       if (mounted.current) {
         setIsSaving(false);
+        onSavingChange?.(false);
       }
     }
   }
@@ -200,6 +211,11 @@ function BookingForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {validationError && (
+        <p role="alert" className="text-sm text-destructive">
+          {validationError}
+        </p>
+      )}
       <fieldset disabled={isSaving || Boolean(error)} className="space-y-3">
         <legend className="mb-3 text-sm font-medium">Horário disponível</legend>
 
@@ -220,7 +236,9 @@ function BookingForm({
       </fieldset>
 
       <div className="space-y-2">
-        <Label htmlFor="client-name">Nome do cliente</Label>
+        <Label htmlFor="client-name">
+          {publicBooking ? "Seu nome" : "Nome do cliente"}
+        </Label>
 
         <Input
           id="client-name"
@@ -253,15 +271,22 @@ function BookingForm({
           <p role="alert" className="text-sm leading-relaxed text-destructive">
             {error}
           </p>
-
-          <Button
-            type="button"
-            variant="outline"
-            className="min-h-11 w-full"
-            onClick={onBack}
-          >
-            Voltar para conferir a agenda
-          </Button>
+          {onBack ? (
+            <Button
+              type="button"
+              variant="outline"
+              className="min-h-11 w-full"
+              onClick={onBack}
+            >
+              Voltar para conferir a agenda
+            </Button>
+          ) : (
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              Se houve falha de conexão ao confirmar, entre em contato com o
+              estabelecimento antes de tentar novamente. A reserva pode ter sido
+              registrada mesmo sem a confirmação aparecer aqui.
+            </p>
+          )}
         </div>
       ) : (
         <Button

@@ -8,6 +8,7 @@ import { ServicesPage } from "@/pages/ServicesPage";
 import { AvailabilityPage } from "@/pages/AvailabilityPage";
 import { isAuthSession, type AuthSession } from "@/services/auth.service";
 import { deactivatePush } from "@/services/push.service";
+import { PublicBookingPage } from "@/pages/PublicBookingPage";
 
 type Page = "agenda" | "new" | "services" | "availability";
 
@@ -58,7 +59,7 @@ function readStoredSession(): StoredSession | null {
   }
 }
 
-function App() {
+function AdminApp() {
   const [auth, setAuth] = useState<StoredSession | null>(readStoredSession);
 
   const session = auth?.session ?? null;
@@ -269,6 +270,32 @@ function App() {
         />
       )}
     </AppShell>
+  );
+}
+
+function App() {
+  const path = window.location.pathname;
+
+  const publicRoute = path.match(/^\/agendar\/([a-z0-9]+(?:-[a-z0-9]+)*)\/?$/);
+
+  if (publicRoute) {
+    return <PublicBookingPage slug={publicRoute[1]!} />;
+  }
+
+  if (path === "/" || path === "/admin" || path === "/admin/") {
+    return <AdminApp />;
+  }
+
+  return (
+    <main className="flex min-h-svh items-center justify-center bg-background px-6 text-foreground">
+      <div className="max-w-sm space-y-3 text-center">
+        <h1 className="text-2xl font-semibold">Página não encontrada</h1>
+
+        <p className="text-sm text-muted-foreground">
+          Confira o endereço enviado pelo estabelecimento.
+        </p>
+      </div>
+    </main>
   );
 }
 
